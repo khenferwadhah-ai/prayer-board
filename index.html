@@ -2,148 +2,130 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة مواقيت الصلاة</title>
+<title>لعبة تخمين الرقم</title>
 
 <style>
-body {
+  body {
     margin: 0;
-    font-family: 'Tahoma', Arial;
-    background: url("background.jpg") no-repeat center center fixed;
-    background-size: cover;
-    color: white;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1d2671, #c33764);
+    font-family: Arial, sans-serif;
+  }
+
+  .game {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    width: 300px;
     text-align: center;
-}
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  }
 
-.overlay {
-    background: rgba(0,0,0,0.55);
-    min-height: 100vh;
-    padding: 20px;
-}
-
-.logo {
-    width: 140px;
-    margin: 10px auto;
-}
-
-.title {
-    font-size: 26px;
-    font-weight: bold;
+  h2 {
     margin-bottom: 10px;
-}
+    color: #333;
+  }
 
-.clock {
-    font-size: 60px;
-    margin: 20px 0;
-    font-weight: bold;
-}
-
-.countdown {
-    font-size: 26px;
-    margin-bottom: 25px;
-    color: #ffd700;
-}
-
-table {
-    width: 90%;
-    margin: auto;
-    border-collapse: collapse;
-    font-size: 22px;
-    background: rgba(0,0,0,0.6);
-}
-
-th, td {
-    border: 1px solid #ffffff55;
+  input {
+    width: 80%;
     padding: 10px;
-}
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
 
-th {
-    background: rgba(255,215,0,0.3);
-}
+  button {
+    margin: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+  }
+
+  .check {
+    background: #4CAF50;
+  }
+
+  .reset {
+    background: #2196F3;
+  }
+
+  button:hover {
+    opacity: 0.85;
+  }
+
+  #result {
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  #tries {
+    color: #555;
+    font-size: 14px;
+  }
 </style>
 </head>
 
-<body>
-<div class="overlay">
+<body dir="rtl">
 
-    <img src="logo.png" class="logo">
+<div class="game">
+  <h2>🎯 لعبة تخمين الرقم</h2>
+  <p>اختر رقمًا بين 1 و 10</p>
 
-    <div class="title">
-        الجمعية الخيرية مسك الختام – الڨرارم ڨوڨة
-    </div>
+  <input type="number" id="guess" min="1" max="10">
+  <br>
 
-    <div class="clock" id="clock">00:00:00</div>
+  <button class="check" onclick="تحقق()">تحقق</button>
+  <button class="reset" onclick="اعادة_اللعب()">🔄 إعادة</button>
 
-    <div class="countdown" id="nextPrayer">
-        الصلاة القادمة:
-    </div>
-
-    <table>
-        <tr><th>الصلاة</th><th>التوقيت (شتاء)</th></tr>
-        <tr><td>الفجر</td><td>05:55</td></tr>
-        <tr><td>الشروق</td><td>07:25</td></tr>
-        <tr><td>الظهر</td><td>12:40</td></tr>
-        <tr><td>العصر</td><td>15:35</td></tr>
-        <tr><td>المغرب</td><td>18:05</td></tr>
-        <tr><td>العشاء</td><td>19:30</td></tr>
-    </table>
-
+  <p id="result"></p>
+  <p id="tries"></p>
 </div>
 
 <script>
-const prayers = [
-    {name:"الفجر", time:"05:55"},
-    {name:"الشروق", time:"07:25"},
-    {name:"الظهر", time:"12:40"},
-    {name:"العصر", time:"15:35"},
-    {name:"المغرب", time:"18:05"},
-    {name:"العشاء", time:"19:30"}
-];
+  let الرقم_السري;
+  let عدد_المحاولات;
 
-function updateClock(){
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2,'0');
-    const m = String(now.getMinutes()).padStart(2,'0');
-    const s = String(now.getSeconds()).padStart(2,'0');
-    document.getElementById("clock").innerText = `${h}:${m}:${s}`;
+  function بدء_اللعبة() {
+    الرقم_السري = Math.floor(Math.random() * 10) + 1;
+    عدد_المحاولات = 0;
+    document.getElementById("result").textContent = "";
+    document.getElementById("tries").textContent = "عدد المحاولات: 0";
+    document.getElementById("guess").value = "";
+  }
 
-    let next = null;
-    for(let p of prayers){
-        const [ph,pm] = p.time.split(":");
-        const pt = new Date();
-        pt.setHours(ph,pm,0);
+  function تحقق() {
+    let تخمين = Number(document.getElementById("guess").value);
+    let نتيجة = document.getElementById("result");
+    عدد_المحاولات++;
 
-        if(pt > now){
-            next = p;
-            break;
-        }
-    }
-
-    if(!next){
-        next = prayers[0];
-        const [ph,pm] = next.time.split(":");
-        const pt = new Date();
-        pt.setDate(pt.getDate()+1);
-        pt.setHours(ph,pm,0);
-        next.target = pt;
+    if (تخمين === الرقم_السري) {
+      نتيجة.textContent = "🎉 مبروك! الرقم صحيح";
+      نتيجة.style.color = "green";
+    } else if (تخمين > الرقم_السري) {
+      نتيجة.textContent = "⬇️ الرقم أصغر";
+      نتيجة.style.color = "orange";
     } else {
-        const [ph,pm] = next.time.split(":");
-        const pt = new Date();
-        pt.setHours(ph,pm,0);
-        next.target = pt;
+      نتيجة.textContent = "⬆️ الرقم أكبر";
+      نتيجة.style.color = "orange";
     }
 
-    const diff = next.target - now;
-    const hh = String(Math.floor(diff/3600000)).padStart(2,'0');
-    const mm = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-    const ss = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+    document.getElementById("tries").textContent =
+      "عدد المحاولات: " + عدد_المحاولات;
+  }
 
-    document.getElementById("nextPrayer").innerText =
-        `الصلاة القادمة: ${next.name} بعد ${hh}:${mm}:${ss}`;
-}
+  function اعادة_اللعب() {
+    بدء_اللعبة();
+  }
 
-setInterval(updateClock,1000);
-updateClock();
+  بدء_اللعبة();
 </script>
 
 </body>
